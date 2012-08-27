@@ -17,7 +17,7 @@ $.extend(timer, {
 				.text(newTag);
 		$('select[name="timetag"]').append(option);
 		$(this).val('');
-		localStorage.setItem('timer.currentCat', selected);
+		localStorage.setItem('timer.currentCat', newTag);
 		timer.refreshDisplay(ev, newTag);
 	},
 
@@ -76,7 +76,6 @@ timer.refreshDisplay = function(ev, data) {
 
 	$('#action').attr('disabled', false);
 
-	console.log('data', typeof data);
 	if (typeof data === 'string') {
 		if (!timer.data[data]) {
 			timer.data[data] = {};
@@ -207,7 +206,6 @@ timer.refreshDisplay = function(ev, data) {
 	setSelect(cats);
 	$.each(cats, function(index, cat) {
 		timer.data[cat]['total'] = calculateTime(timer.data[cat], cat);
-		console.log('total', timer.data[cat].total, timer.data[cat].on);
 	});
 	timer.updateTotals();
 
@@ -253,7 +251,6 @@ timer.startStop = function(ev) {
 		text: annotation,
 	};
 
-	console.log('putting tiddler', timer.data[cat], timestamp, tag);
 
 	$.ajax({
 		url: uri,
@@ -265,12 +262,75 @@ timer.startStop = function(ev) {
 	});
 };
 
+/*
+ * Reset the current categories tiddlers and start anew.
+ * We PUT the existing tiddlers in the category with a new tag.
+ */
+timer.resetCategory = function(ev) {
+	ev.stopPropagation();
+	var currentCat = localStorage.getItem('timer.currentCat'),
+		tiddlerTitles;
+
+	if (!currentCat) {
+		return false;
+	}
+	
+	if (confirm('Are you sure you want to reset ' + currentCat + '?')) {
+		timer.realReset(ev, currentCat);
+	}
+
+	return false;
+}
+
+/*
+ * Do the real work requested by resetCategory.
+ */
+timer.realReset = function(ev, category) {
+	var tiddlerTitles = timer.data[category].stop.concat(
+			timer.data[category].start),
+		totalTiddlers = tiddlerTitles.length,
+		timestamp = Math.round(new Date().getTime() / 1000);
+
+	function getCallback(data) {
+		var title = data.title,
+			tag = data.tags[0].replace(/timer:/, 'timer-' + timestamp + ':'),
+			uri = '/bags/timer_public/tiddlers/' + title;
+			
+		data.tags = [tag];
+		$.ajax({
+			url: uri,
+			type: 'PUT',
+			contentType: 'application/json',
+			data: JSON.stringify(data),
+			success: function(data) {
+				totalTiddlers--;
+				if (totalTiddlers <= 0) {
+					timer.data = {};
+					localStorage.removeItem('timer.currentCat');
+					timer.loadTags();
+				}
+			},
+			error: timer.errorHandler
+		});
+	}
+
+	$.each(tiddlerTitles, function(index, title) {
+		var uri = '/bags/timer_public/tiddlers/' + title + '.json';
+		$.ajax({
+			url: uri,
+			success: getCallback,
+			error: timer.errorHandler
+		});
+	});
+}	
+
 timer.init = function() {
 	// bind form events
 	$('input[name="newtimetag"]').on('change', timer.updateTimeTag);
 	$('select[name="timetag"]').on('change', timer.selectTimeTag);
 	$('form').on('submit', timer.noOp);
 	$('#action').on('click', timer.startStop);
+	$('#resettag').on('click', timer.resetCategory);
 	$(document).on('tagsloaded', timer.refreshDisplay);
 	timer.loadTags();
 };
