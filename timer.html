@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <title>Timer</title>
+        <link
+            rel="stylesheet"
+            type="text/css"
+            href="/bags/common/tiddlers/normalize.css" />
+        <link
+            rel="stylesheet"
+            type="text/css"
+            href="/bags/timer_public/tiddlers/timer.css" />
+    </head>
+    <body>
+        <h1>Timer</h1>
+        <form>
+            <select name="timetag">
+            </select>
+            <input name="newtimetag" placeholder="new category">
+            Green means the timer is on. Red means it is stopped.
+        </form>
+        <button id="action">loading...</button>
+        <textarea placeholder="annotation"></textarea>
+        <ul id="totals">
+        </ul>
+        <script src="/bags/common/tiddlers/jquery.js"></script>
+        <script src="/bags/timer_public/tiddlers/timer.js"></script>
+    </body>
+</html>

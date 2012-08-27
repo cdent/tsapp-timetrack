@@ -1,0 +1,25 @@
+
+body {
+    width: 90%;
+    margin: 1em 5% 1em 5%;
+}
+
+#action {
+    display: block;
+    width: 100%;
+    margin: 1em auto 1em auto;
+    padding: 1em;
+}
+
+.on {
+    background: green;
+}
+
+.off {
+    background: red;
+}
+
+textarea {
+    width: 100%;
+    height: 3em;
+}
