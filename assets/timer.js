@@ -31,6 +31,7 @@ $(function() {
 			data: {}
 		};
 
+
 	// DOM event handlers
 	$.extend(timer, {
 		/*
@@ -130,6 +131,7 @@ $(function() {
 				timer.data[data] = {};
 				timer.data[data].start = [];
 				timer.data[data].stop = [];
+				timer.data[data].on = false;
 			}
 			return timer.changeCurrent(data);
 		}
@@ -177,13 +179,22 @@ $(function() {
 		 * Update the display with calculated info.
 		 */
 		var cats = Object.keys(timer.data),
-			currentCat = localStorage.getItem('timer.currentCat') || 'test';
+			currentCat = localStorage.getItem('timer.currentCat');
+		if (!currentCat) {
+			currentCat = 'test';
+			timer.data.test = {};
+			timer.data.test.start = [];
+			timer.data.test.stop = [];
+			timer.data.test.on = false;
+			cats.push('test');
+		}
 		setSelect(cats);
 		$.each(cats, function(index, cat) {
 			var catInfo = timer.calculateTime(timer.data[cat]);
 			timer.data[cat].total = catInfo[0];
 			timer.data[cat].on = catInfo[1];
 		});
+
 		timer.updateTotals();
 
 		$('select[name="timetag"]').val(currentCat);
