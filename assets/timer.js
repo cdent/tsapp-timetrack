@@ -1,12 +1,16 @@
+/* jslint vars: true, browser: true */
+/* global $, localStorage, console */
+
+"use strict";
 
 var timer = {
 	// where we keep the time info
-	data: {},
+	data: {}
 };
 
 // DOM event handlers
 $.extend(timer, {
-	noOp: function(ev) {
+	noOp: function() {
 		return false;
 	},
 
@@ -25,7 +29,7 @@ $.extend(timer, {
 		var selected = $(this).val();
 		localStorage.setItem('timer.currentCat', selected);
 		timer.refreshDisplay(ev, selected);
-	},
+	}
 
 });
 
@@ -43,12 +47,12 @@ timer.timeString = function(seconds) {
 	}
 
 	var lSeconds = seconds % 60,
-		minutes = parseInt(seconds/60),
+		minutes = parseInt(seconds / 60, 10),
 		lMinutes = minutes % 60,
-		hours = parseInt(minutes/60);
+		hours = parseInt(minutes / 60, 10);
 
 	return hours + ':' + lMinutes + '.' + lSeconds;
-}
+};
 
 /*
  * Update the list display of total info.
@@ -79,8 +83,8 @@ timer.refreshDisplay = function(ev, data) {
 	if (typeof data === 'string') {
 		if (!timer.data[data]) {
 			timer.data[data] = {};
-			timer.data[data]['start'] = [];
-			timer.data[data]['stop'] = [];
+			timer.data[data].start = [];
+			timer.data[data].stop = [];
 		}
 		return timer.changeCurrent(data);
 	}
@@ -130,20 +134,21 @@ timer.refreshDisplay = function(ev, data) {
 
 	function deGap(type, tuples) {
 		var removals = [],
-			index = 0,
-			lengthTuples = tuples.length;
+			index = 0;
 		$.each(tuples, function(index, tuple) {
 			if (tuple[0] === type) {
 				removals = removals.concat(flushUntilDifferent(
-						type, tuples.slice(index + 1)));
+					type,
+					tuples.slice(index + 1)
+				));
 			}
-			index += 1
-		})
+			index += 1;
+		});
 
 		$.each(removals, function(index, removeme) {
-			var index = tuples.indexOf(removeme);
-			if (index !== -1) {
-				tuples.splice(index, 1);
+			var rindex = tuples.indexOf(removeme);
+			if (rindex !== -1) {
+				tuples.splice(rindex, 1);
 			}
 		});
 
@@ -155,7 +160,7 @@ timer.refreshDisplay = function(ev, data) {
 			start,
 			stop;
 		timer.data[cat].on = false;
-		while (1) {
+		while (true) {
 			start = tuples.shift();
 			if (!start) {
 				return total;
@@ -172,21 +177,20 @@ timer.refreshDisplay = function(ev, data) {
 		}
 	}
 
-
 	function calculateTime(timeInfo, cat) {
 		var	starts = timeInfo.start,
 			stops = timeInfo.stop;
 		return totaller(
-					deGap('stop',
-						deGap('start',
-							zipToType(starts, stops))), cat);
+			deGap('stop',
+				deGap('start',
+					zipToType(starts, stops))),
+			cat
+		);
 	}
 
-	
 	// gather data from tiddlers
 	$.each(data, function(index, tiddler) {
-		var tags = tiddler.tags,
-			tagMap;
+		var tags = tiddler.tags;
 		// array to hash
 		$.each(tags, function(index, tag) {
 			if (tag.match(/timer:/)) {
@@ -195,21 +199,21 @@ timer.refreshDisplay = function(ev, data) {
 					state = info[1];
 				if (!timer.data[cat]) {
 					timer.data[cat] = {};
-					timer.data[cat]['start'] = [];
-					timer.data[cat]['stop'] = [];
+					timer.data[cat].start = [];
+					timer.data[cat].stop = [];
 				}
 				timer.data[cat][state].push(tiddler.title);
 			}
 		});
 	});
-	var cats = Object.keys(timer.data);
+	var cats = Object.keys(timer.data),
+		currentCat = localStorage.getItem('timer.currentCat') || 'test';
 	setSelect(cats);
 	$.each(cats, function(index, cat) {
-		timer.data[cat]['total'] = calculateTime(timer.data[cat], cat);
+		timer.data[cat].total = calculateTime(timer.data[cat], cat);
 	});
 	timer.updateTotals();
 
-	var currentCat = localStorage.getItem('timer.currentCat') || 'test';
 	$('select[name="timetag"]').val(currentCat);
 	timer.changeCurrent(currentCat);
 };
@@ -232,8 +236,7 @@ timer.loadTags = function() {
  * Create a new tiddler either starting of stop in the current tag.
  */
 timer.startStop = function(ev) {
-	var button = $(this),
-		cat = $('select[name="timetag"]').val(),
+	var cat = $('select[name="timetag"]').val(),
 		timestamp = Math.round(new Date().getTime() / 1000),
 		annotation = $('textarea').val(),
 		tag,
@@ -248,7 +251,7 @@ timer.startStop = function(ev) {
 
 	tiddler = {
 		tags: [tag],
-		text: annotation,
+		text: annotation
 	};
 
 
@@ -268,26 +271,26 @@ timer.startStop = function(ev) {
  */
 timer.resetCategory = function(ev) {
 	ev.stopPropagation();
-	var currentCat = localStorage.getItem('timer.currentCat'),
-		tiddlerTitles;
+	var currentCat = localStorage.getItem('timer.currentCat');
 
 	if (!currentCat) {
 		return false;
 	}
-	
+
 	if (confirm('Are you sure you want to reset ' + currentCat + '?')) {
 		timer.realReset(ev, currentCat);
 	}
 
 	return false;
-}
+};
 
 /*
  * Do the real work requested by resetCategory.
  */
 timer.realReset = function(ev, category) {
 	var tiddlerTitles = timer.data[category].stop.concat(
-			timer.data[category].start),
+			timer.data[category].start
+		),
 		totalTiddlers = tiddlerTitles.length,
 		timestamp = Math.round(new Date().getTime() / 1000);
 
@@ -295,14 +298,14 @@ timer.realReset = function(ev, category) {
 		var title = data.title,
 			tag = data.tags[0].replace(/timer:/, 'timer-' + timestamp + ':'),
 			uri = '/bags/timer_public/tiddlers/' + title;
-			
+
 		data.tags = [tag];
 		$.ajax({
 			url: uri,
 			type: 'PUT',
 			contentType: 'application/json',
 			data: JSON.stringify(data),
-			success: function(data) {
+			success: function() {
 				totalTiddlers--;
 				if (totalTiddlers <= 0) {
 					timer.data = {};
@@ -322,7 +325,7 @@ timer.realReset = function(ev, category) {
 			error: timer.errorHandler
 		});
 	});
-}	
+};
 
 timer.init = function() {
 	// bind form events
