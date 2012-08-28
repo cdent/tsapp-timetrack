@@ -19,9 +19,7 @@ $(function() {
 	 */
 	var spaceName = tiddlyweb.status.space.name,
 		privateBag = spaceName + '_private',
-		publicBag = spaceName + '_public';
-
-
+		publicBag = spaceName + '_public',
 	/*
 	 * Our namespace and data holder.
 	 *
@@ -29,9 +27,9 @@ $(function() {
 	 * timer.data[cat].start => list of times
 	 * timer.data[cat].stop => list of times
 	 */
-	var timer = {
-		data: {}
-	};
+		timer = {
+			data: {}
+		};
 
 	// DOM event handlers
 	$.extend(timer, {
