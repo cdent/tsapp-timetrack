@@ -15,6 +15,14 @@ $(function() {
 	"use strict";
 
 	/*
+	 * Some locally useful variables.
+	 */
+	var spaceName = tiddlyweb.status.space.name,
+		privateBag = spaceName + '_private',
+		publicBag = spaceName + '_public';
+
+
+	/*
 	 * Our namespace and data holder.
 	 *
 	 * data keeps start and stop information for each category:
@@ -189,7 +197,8 @@ $(function() {
 	 * we have it.
 	 */
 	timer.loadTags = function() {
-		var searchURI = '/search.json?q=bag:timer_public%20tag:"timer:*"';
+		var searchURI = '/search.json?q=(bag:' + privateBag + '%20OR%20bag:'
+				+ publicBag + ')%20tag:"timer:*"';
 		$('#action').text('loading...').attr('disabled', true);
 		$.ajax({
 			url: searchURI,
@@ -199,6 +208,12 @@ $(function() {
 			error: timer.errorHandler
 		});
 	};
+
+	function tiddlerURI(cat, title) {
+		var bag = cat.match(/\.p$/) ? privateBag : publicBag;
+		return '/bags/' + encodeURIComponent(bag) + '/tiddlers/'
+			+ encodeURIComponent(title);
+	}
 
 	/* 
 	 * Create a new tiddler either starting or stopping in the current tag.
@@ -210,7 +225,7 @@ $(function() {
 			timestamp = Math.round(new Date().getTime() / 1000),
 			annotation = $('textarea').val(),
 			tag,
-			uri = '/bags/timer_public/tiddlers/' + timestamp,
+			uri = tiddlerURI(cat, timestamp),
 			tiddler;
 
 		if (timer.data[cat].on) {
@@ -267,7 +282,7 @@ $(function() {
 		function getCallback(data) {
 			var title = data.title,
 				tag = data.tags[0].replace(/timer:/, 'timer-' + timestamp + ':'),
-				uri = '/bags/timer_public/tiddlers/' + title;
+				uri = tiddlerURI(category, title);
 
 			data.tags = [tag];
 			$.ajax({
@@ -288,7 +303,7 @@ $(function() {
 		}
 
 		$.each(tiddlerTitles, function(index, title) {
-			var uri = '/bags/timer_public/tiddlers/' + title + '.json';
+			var uri = tiddlerURI(category, title) + '.json';
 			$.ajax({
 				url: uri,
 				success: getCallback,
