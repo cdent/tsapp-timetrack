@@ -95,7 +95,7 @@ $(function() {
 			lMinutes = minutes % 60,
 			hours = parseInt(minutes / 60, 10);
 
-		return pad2(hours) + ':' + pad2(lMinutes) + '.' + pad2(lSeconds);
+		return pad2(hours) + ':' + pad2(lMinutes) + ':' + pad2(lSeconds);
 	};
 
 	/*
