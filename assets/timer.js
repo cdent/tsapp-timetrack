@@ -315,6 +315,15 @@ $(function() {
  * Define a private collection of functions for performing
  * the time keeping calculations. Export the calculateTime
  * function to the context (in this case the timer object).
+ *
+ * Essentially what these functions do is order the starts
+ * and stops and then remove any repeats of the same type
+ * such that the resulting list is start, stop, start, stop
+ * etc, against which is it is then possible to do some sums.
+ *
+ * This wouldn't be needed if there was greater constraint 
+ * on the creation of the data, but the idea here is that
+ * multiple inputs might be creating timer tiddlers.
  */
 (function(context) {
 	"use strict";
