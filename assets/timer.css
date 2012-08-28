@@ -32,3 +32,7 @@ textarea {
 #resettag {
     float: right;
 }
+
+#message {
+    color: red;
+}

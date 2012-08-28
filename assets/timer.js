@@ -20,6 +20,7 @@ $(function() {
 	var spaceName = tiddlyweb.status.space.name,
 		privateBag = spaceName + '_private',
 		publicBag = spaceName + '_public',
+		recipe = tiddlyweb.status.space.recipe,
 	/*
 	 * Our namespace and data holder.
 	 *
@@ -322,6 +323,12 @@ $(function() {
 	};
 
 	timer.init = function() {
+		if (recipe.match(/_public$/)) {
+			$('#message').text(
+				'You must be a member of this space to track time.'
+			);
+			return;
+		}
 		// bind form events
 		$('input[name="newtimetag"]').on('change', timer.updateTimeTag);
 		$('select[name="timetag"]').on('change', timer.selectTimeTag);
