@@ -14,17 +14,31 @@ $(function() {
 
 	"use strict";
 
+	/*
+	 * Our namespace and data holder.
+	 *
+	 * data keeps start and stop information for each category:
+	 * timer.data[cat].start => list of times
+	 * timer.data[cat].stop => list of times
+	 */
 	var timer = {
-		// where we keep the time info
 		data: {}
 	};
 
 	// DOM event handlers
 	$.extend(timer, {
+		/*
+		 * Do nothing with the event.
+		 */
 		noOp: function() {
 			return false;
 		},
 
+		/*
+		 * Add a new timer tag/category via the input
+		 * text box. When it changes, we update the 
+		 * select dropdown and switch the current category.
+		 */
 		updateTimeTag: function(ev) {
 			var newTag = $(this).val(),
 				option = $('<option>')
@@ -36,6 +50,10 @@ $(function() {
 			timer.refreshDisplay(ev, newTag);
 		},
 
+		/*
+		 * Select a category from the select, setting the
+		 * current category and updating the display.
+		 */
 		selectTimeTag: function(ev) {
 			var selected = $(this).val();
 			localStorage.setItem('timer.currentCat', selected);
@@ -44,6 +62,9 @@ $(function() {
 
 	});
 
+	/*
+	 * A bad error handler, waiting for some goodness.
+	 */
 	timer.errorHandler = function(xhr, status, error) {
 		console.log(xhr, status, error);
 	};
@@ -66,7 +87,8 @@ $(function() {
 	};
 
 	/*
-	 * Update the list display of total info.
+	 * Update the list display of total info for each
+	 * category.
 	 */
 	timer.updateTotals = function() {
 		var cats = Object.keys(timer.data);
@@ -80,13 +102,19 @@ $(function() {
 	};
 
 	/*
-	 * Show the results for the current category in the button.
+	 * Show the results for the current category in the button,
+	 * when we switch to it.
 	 */
 	timer.changeCurrent = function(cat) {
 		$('#action').text(timer.timeString(timer.data[cat].total))
 			.attr('class', (timer.data[cat].on ? 'on' : 'off'));
 	};
 
+	/*
+	 * Manage the main display. If we have just switched to a new
+	 * category we just changeCurrent, but if we have refrshed all
+	 * the data, then recalculate totals and display.
+	 */
 	timer.refreshDisplay = function(ev, data) {
 
 		$('#action').attr('disabled', false);
@@ -100,6 +128,10 @@ $(function() {
 			return timer.changeCurrent(data);
 		}
 
+		/*
+		 * Set the options in the select dropdown to the 
+		 * available categories.
+		 */
 		function setSelect(cats) {
 			var selector = $('select[name="timetag"]');
 			selector.empty();
@@ -112,7 +144,11 @@ $(function() {
 		}
 
 
-		// gather data from tiddlers
+		/*
+		 * Treat the incoming data as tiddlers, parse for
+		 * categories and stop and start status, push into
+		 * timer.data[cat].{stop,start}
+		 */
 		$.each(data, function(index, tiddler) {
 			var tags = tiddler.tags;
 			// array to hash
@@ -130,6 +166,10 @@ $(function() {
 				}
 			});
 		});
+
+		/*
+		 * Update the display with calculated info.
+		 */
 		var cats = Object.keys(timer.data),
 			currentCat = localStorage.getItem('timer.currentCat') || 'test';
 		setSelect(cats);
@@ -144,8 +184,10 @@ $(function() {
 		timer.changeCurrent(currentCat);
 	};
 
-	// get all the current time info
-	// XXX: destaticify
+	/*
+	 * Load the timer information from the bags. Announce when
+	 * we have it.
+	 */
 	timer.loadTags = function() {
 		var searchURI = '/search.json?q=bag:timer_public%20tag:"timer:*"';
 		$('#action').text('loading...').attr('disabled', true);
@@ -159,7 +201,9 @@ $(function() {
 	};
 
 	/* 
-	 * Create a new tiddler either starting of stop in the current tag.
+	 * Create a new tiddler either starting or stopping in the current tag.
+	 * This is in response to the big button being clicked. When the
+	 * tiddler has been pushed, refresh the data and recalculate.
 	 */
 	timer.startStop = function(ev) {
 		var cat = $('select[name="timetag"]').val(),
