@@ -86,12 +86,16 @@ $(function() {
 			return 'new';
 		}
 
+		function pad2(number) {
+			return (number < 10 ? '0' : '') + number;
+		}
+
 		var lSeconds = seconds % 60,
 			minutes = parseInt(seconds / 60, 10),
 			lMinutes = minutes % 60,
 			hours = parseInt(minutes / 60, 10);
 
-		return hours + ':' + lMinutes + '.' + lSeconds;
+		return pad2(hours) + ':' + pad2(lMinutes) + '.' + pad2(lSeconds);
 	};
 
 	/*
