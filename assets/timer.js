@@ -100,93 +100,6 @@ timer.refreshDisplay = function(ev, data) {
 		});
 	}
 
-	function zipToType(starts, stops) {
-		var tuples = [];
-
-		// not hugely DRY
-		$.each(starts, function(index, start) {
-			tuples.push(['start', start]);
-		});
-		$.each(stops, function(index, stop) {
-			tuples.push(['stop', stop]);
-		});
-
-		tuples = tuples.sort(function(a, b) {
-			return (a[1] - b[1]);
-		});
-
-		return tuples;
-	}
-
-	function flushUntilDifferent(type, tuples) {
-		var removals = [];
-
-		$.each(tuples, function(index, tuple) {
-			if (tuple[0] === type) {
-				removals.push(tuple);
-			} else {
-				return false;
-			}
-		});
-
-		return removals;
-	}
-
-	function deGap(type, tuples) {
-		var removals = [],
-			index = 0;
-		$.each(tuples, function(index, tuple) {
-			if (tuple[0] === type) {
-				removals = removals.concat(flushUntilDifferent(
-					type,
-					tuples.slice(index + 1)
-				));
-			}
-			index += 1;
-		});
-
-		$.each(removals, function(index, removeme) {
-			var rindex = tuples.indexOf(removeme);
-			if (rindex !== -1) {
-				tuples.splice(rindex, 1);
-			}
-		});
-
-		return tuples;
-	}
-
-	function totaller(tuples, cat) {
-		var total = 0,
-			start,
-			stop;
-		timer.data[cat].on = false;
-		while (true) {
-			start = tuples.shift();
-			if (!start) {
-				return total;
-			}
-			start = start[1];
-			stop = tuples.shift();
-			if (!stop) {
-				timer.data[cat].on = true;
-				stop = Math.round(new Date().getTime() / 1000);
-			} else {
-				stop = stop[1];
-			}
-			total += (stop - start);
-		}
-	}
-
-	function calculateTime(timeInfo, cat) {
-		var	starts = timeInfo.start,
-			stops = timeInfo.stop;
-		return totaller(
-			deGap('stop',
-				deGap('start',
-					zipToType(starts, stops))),
-			cat
-		);
-	}
 
 	// gather data from tiddlers
 	$.each(data, function(index, tiddler) {
@@ -210,7 +123,9 @@ timer.refreshDisplay = function(ev, data) {
 		currentCat = localStorage.getItem('timer.currentCat') || 'test';
 	setSelect(cats);
 	$.each(cats, function(index, cat) {
-		timer.data[cat].total = calculateTime(timer.data[cat], cat);
+		var catInfo = timer.calculateTime(timer.data[cat]);
+		timer.data[cat].total = catInfo[0];
+		timer.data[cat].on = catInfo[1];
 	});
 	timer.updateTotals();
 
@@ -341,3 +256,102 @@ timer.init = function() {
 $(function() {
 	timer.init();
 });
+
+/*
+ * Define a private collection of functions for performing
+ * the time keeping calculations. Export the calculateTime
+ * function to the context (in this case the timer object).
+ */
+(function(context) {
+	"use strict";
+
+	function zipToType(starts, stops) {
+		var tuples = [];
+
+		// not hugely DRY
+		$.each(starts, function(index, start) {
+			tuples.push(['start', start]);
+		});
+		$.each(stops, function(index, stop) {
+			tuples.push(['stop', stop]);
+		});
+
+		tuples = tuples.sort(function(a, b) {
+			return (a[1] - b[1]);
+		});
+
+		return tuples;
+	}
+
+	function flushUntilDifferent(type, tuples) {
+		var removals = [];
+
+		$.each(tuples, function(index, tuple) {
+			if (tuple[0] === type) {
+				removals.push(tuple);
+			} else {
+				return false;
+			}
+		});
+
+		return removals;
+	}
+
+	function deGap(type, tuples) {
+		var removals = [],
+			index = 0;
+		$.each(tuples, function(index, tuple) {
+			if (tuple[0] === type) {
+				removals = removals.concat(flushUntilDifferent(
+					type,
+					tuples.slice(index + 1)
+				));
+			}
+			index += 1;
+		});
+
+		$.each(removals, function(index, removeme) {
+			var rindex = tuples.indexOf(removeme);
+			if (rindex !== -1) {
+				tuples.splice(rindex, 1);
+			}
+		});
+
+		return tuples;
+	}
+
+	function totaller(tuples) {
+		var total = 0,
+			start,
+			stop,
+			timerOn = false;
+		while (true) {
+			start = tuples.shift();
+			if (!start) {
+				return [total, timerOn];
+			}
+			start = start[1];
+			stop = tuples.shift();
+			if (!stop) {
+				timerOn = true;
+				stop = Math.round(new Date().getTime() / 1000);
+			} else {
+				stop = stop[1];
+			}
+			total += (stop - start);
+		}
+	}
+
+	function calculateTime(timeInfo) {
+		var	starts = timeInfo.start,
+			stops = timeInfo.stop;
+		return totaller(
+			deGap('stop',
+				deGap('start',
+					zipToType(starts, stops)))
+		);
+	}
+
+	context.calculateTime = calculateTime;
+}(timer));
+
