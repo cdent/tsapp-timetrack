@@ -12,4 +12,8 @@ all categories.
 
 It is designed to be simple enough to use on tiny displays: Track
 your time by selecting a category and hitting the button to start or
-stop.
+stop. Not pretty but functional:
+
+![phone screenshot](http://cdent.tiddlyspace.com/bags/cdent_public/tiddlers/timer.png)  
+
+
