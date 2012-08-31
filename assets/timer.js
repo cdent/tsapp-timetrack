@@ -120,6 +120,12 @@ $(function() {
 	timer.changeCurrent = function(cat) {
 		$('#action').text(timer.timeString(timer.data[cat].total))
 			.attr('class', (timer.data[cat].on ? 'on' : 'off'));
+		if (timer.data[cat].on) {
+			setTimeout(function() {
+				timer.data[cat].total += 10;
+				timer.changeCurrent(cat);
+			}, 10000);
+		}
 	};
 
 	/*
