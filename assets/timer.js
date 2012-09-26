@@ -218,7 +218,7 @@ $(function() {
 	 */
 	timer.loadTags = function() {
 		var searchURI = '/search.json?q=(bag:' + privateBag + '%20OR%20bag:'
-				+ publicBag + ')%20tag:"timer:*"';
+				+ publicBag + ')%20tag:"timer:*"%20_limit:999';
 		$('#action').text('loading...').attr('disabled', true);
 		$.ajax({
 			url: searchURI,
